@@ -7,9 +7,16 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		DocumentsReader.addDocuments("F:\\Cours\\Sherbrooke\\IFT501\\TP2\\nsfabs_part1_out\\docwords.txt");
-		DocumentsReader.addDocuments("F:\\Cours\\Sherbrooke\\IFT501\\TP2\\nsfabs_part2_out\\docwords.txt");
-		DocumentsReader.addDocuments("F:\\Cours\\Sherbrooke\\IFT501\\TP2\\nsfabs_part3_out\\docwords.txt");
+
+		DocumentsReader reader = new DocumentsReader();
+		reader.addDocuments("data/nsfabs_part1_out/docwords.txt");
+		reader.addDocuments("data/nsfabs_part2_out/docwords.txt");
+		reader.addDocuments("data/nsfabs_part3_out/docwords.txt");
+
+		reader.doWordReduction();
+
+		System.out.println("PREPROCESSING DONE !");
+
 	}
 
 }

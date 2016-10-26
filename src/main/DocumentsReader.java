@@ -4,12 +4,20 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class DocumentsReader {
 
-	private static ArrayList<Document> documents = new ArrayList<>();
+	private ArrayList<Document> documents;
 
-	public static void addDocuments(String words) {
+	private int[] documentsContainingWords;
+
+	public DocumentsReader() {
+		documents = new ArrayList<>();
+		documentsContainingWords = new int[Document.nbWords];
+	}
+
+	public void addDocuments(String words) {
 
 		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(words))) {
 			String line = null;
@@ -22,6 +30,7 @@ public class DocumentsReader {
 					currentDocument = new Document();
 					currentDocumentNumber = Integer.parseInt(split[0]);
 				}
+				documentsContainingWords[Integer.parseInt(split[1]) - 1]++;
 				currentDocument.setFrequency(Integer.parseInt(split[1]) - 1, Byte.parseByte(split[2]));
 			}
 		} catch (FileNotFoundException ex) {
@@ -30,26 +39,29 @@ public class DocumentsReader {
 			ex.printStackTrace();
 		}
 	}
-	
+
 	public void doWordReduction() {
-		byte[] documentsContainingWords = new byte[Document.nbWords];
-		for (int i = 0; i < Document.nbWords; ++i) {
-			for (Document d : documents) {
-				if (d.getFrequency(i) > 0)
-					documentsContainingWords[i]++;
+
+		for (Document d : documents) {
+			ArrayList<Integer> words_copy = new ArrayList<>(d.getWords());
+			for (Integer word : words_copy) {
+				double tfidf = d.getFrequency(word) * Math.log(documents.size() / (1 + documentsContainingWords[word]));
+				if (tfidf < 50) {
+					d.removeWord(word);
+				}
 			}
 		}
+
+		HashSet<Integer> words = new HashSet<>();
 		for (Document d : documents) {
-			
+			words.addAll(d.getWords());
 		}
+
+		System.out.println("Percentage removed = " + (1.0 - words.size() / (float)Document.nbWords) * 100.0);
 	}
 
-	public static void resetDocuments() {
+	public void resetDocuments() {
 		documents.clear();
-	}
-
-	private DocumentsReader() {
-		// TODO Auto-generated constructor stub
 	}
 
 }
