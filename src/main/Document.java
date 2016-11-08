@@ -24,7 +24,7 @@ public class Document {
 		else
 			return 0;
 	}
-	
+
 	public Set<Integer> getWords() {
 		return tf.keySet();
 	}
@@ -32,5 +32,55 @@ public class Document {
 	public void removeWord(int word) {
 		tf.remove(word);
 	}
+
+	public double euclidianDistance(Document d2) {
+		double res = 0;
+		for (Integer word : getWords()) {
+			res += (getFrequency(word) - d2.getFrequency(word)) * (getFrequency(word) - d2.getFrequency(word));
+		}
+		for (Integer word : d2.getWords()) {
+			if (getFrequency(word) == 0)
+				res += d2.getFrequency(word) * d2.getFrequency(word);
+		}
+		return Math.sqrt(res);
+	}
+
+	public void add(Document d2) {
+		for (Integer word : d2.getWords()) {
+			setFrequency(word, (byte) (getFrequency(word) + d2.getFrequency(word)));
+		}
+	}
+
+	public void divide(int number) {
+		for (Integer word : getWords()) {
+			setFrequency(word, (byte)Math.floor(((double)getFrequency(word) / (double)number)));
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((tf == null) ? 0 : tf.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Document other = (Document) obj;
+		if (tf == null) {
+			if (other.tf != null)
+				return false;
+		} else if (!tf.equals(other.tf))
+			return false;
+		return true;
+	}
+	
 
 }
