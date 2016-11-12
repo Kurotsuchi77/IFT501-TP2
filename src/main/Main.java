@@ -2,23 +2,22 @@ package main;
 
 public class Main {
 
-	public Main() {
+    public Main() {
 
-	}
+    }
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
+	DocumentsProcessing reader = new DocumentsProcessing();
+	reader.addDocuments("data/nsfabs_part1_out/docwords.txt");
+	reader.addDocuments("data/nsfabs_part2_out/docwords.txt");
+	reader.addDocuments("data/nsfabs_part3_out/docwords.txt");
 
-		DocumentsProcessing reader = new DocumentsProcessing();
-		reader.addDocuments("data/nsfabs_part1_out/docwords.txt");
-		reader.addDocuments("data/nsfabs_part2_out/docwords.txt");
-		reader.addDocuments("data/nsfabs_part3_out/docwords.txt");
+	reader.doWordReduction();
 
-		reader.doWordReduction();
+	System.out.println("PREPROCESSING DONE !");
 
-		System.out.println("PREPROCESSING DONE !");
-
-		reader.doClustering();
-
-	}
+	reader.doClustering();
+	// System.out.println("CA CONVERGE");
+    }
 
 }
