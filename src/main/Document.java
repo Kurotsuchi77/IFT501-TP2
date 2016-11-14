@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class Document {
 
-    static final int nbWords = 30799;
+    static final int		     nbWords = 30799;
 
     private HashMap<Integer, Double> tf;
 
@@ -33,20 +33,22 @@ public class Document {
 	tf.remove(word);
     }
 
-    public double euclidianDistance(Document d2, HashMap<Integer,Float> weight) {
-		double res = 0;
-		for (Integer word : getWords()) {
-			res += (weight != null ?weight.get(word) : 1)*((getFrequency(word) - d2.getFrequency(word)) * (getFrequency(word) - d2.getFrequency(word)));
-		}
-		for (Integer word : d2.getWords()) {
-			if (getFrequency(word) == 0)
-				res += (weight != null ?weight.get(word) : 1)*(d2.getFrequency(word) * d2.getFrequency(word));
-		}
-		return Math.sqrt(res);
-    }
-	public double euclidianDistance(Document d2) {
-		return euclidianDistance(d2,null);
+    public double euclidianDistance(Document d2, HashMap<Integer, Float> weight) {
+	double res = 0;
+	for (Integer word : getWords()) {
+	    res += (weight != null ? weight.get(word) : 1)
+		    * ((getFrequency(word) - d2.getFrequency(word)) * (getFrequency(word) - d2.getFrequency(word)));
 	}
+	for (Integer word : d2.getWords()) {
+	    if (getFrequency(word) == 0)
+		res += (weight != null ? weight.get(word) : 1) * (d2.getFrequency(word) * d2.getFrequency(word));
+	}
+	return Math.sqrt(res);
+    }
+
+    public double euclidianDistance(Document d2) {
+	return euclidianDistance(d2, null);
+    }
 
     public void add(Document d2) {
 	for (Integer word : d2.getWords()) {
@@ -85,8 +87,8 @@ public class Document {
 	return true;
     }
 
-	@Override
-	public String toString() {
-		return tf.toString() ;
-	}
+    @Override
+    public String toString() {
+	return tf.toString();
+    }
 }
