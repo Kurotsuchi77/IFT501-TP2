@@ -7,18 +7,18 @@ public class Document {
 
     static final int		     nbWords = 30799;
 
-    private HashMap<Integer, Double> tf;
+    private HashMap<Integer, Float> tf;
 
     public Document() {
 	tf = new HashMap<>();
     }
 
-    public void setFrequency(int word, double frequency) {
+    public void setFrequency(int word, float frequency) {
 	if (word >= 0 && word < nbWords && frequency >= 0)
 	    tf.put(word, frequency);
     }
 
-    public double getFrequency(int word) {
+    public float getFrequency(int word) {
 	if (word >= 0 && word < nbWords && tf.containsKey(word))
 	    return tf.get(word);
 	else
@@ -33,8 +33,8 @@ public class Document {
 	tf.remove(word);
     }
 
-    public double euclidianDistance(Document d2, HashMap<Integer, Float> weight) {
-	double res = 0;
+    public float euclidianDistance(Document d2, HashMap<Integer, Float> weight) {
+	float res = 0;
 	for (Integer word : getWords()) {
 	    res += (weight != null ? weight.get(word) : 1)
 		    * ((getFrequency(word) - d2.getFrequency(word)) * (getFrequency(word) - d2.getFrequency(word)));
@@ -43,10 +43,10 @@ public class Document {
 	    if (getFrequency(word) == 0)
 		res += (weight != null ? weight.get(word) : 1) * (d2.getFrequency(word) * d2.getFrequency(word));
 	}
-	return Math.sqrt(res);
+	return (float) Math.sqrt(res);
     }
 
-    public double euclidianDistance(Document d2) {
+    public float euclidianDistance(Document d2) {
 	return euclidianDistance(d2, null);
     }
 
@@ -58,7 +58,7 @@ public class Document {
 
     public void divide(int number) {
 	for (Integer word : getWords()) {
-	    setFrequency(word, getFrequency(word) / (double) number);
+	    setFrequency(word, getFrequency(word) / (float) number);
 	}
     }
 

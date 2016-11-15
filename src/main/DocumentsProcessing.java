@@ -21,14 +21,14 @@ public class DocumentsProcessing {
 
     byte[][]                    membershipMatrix;
     HashMap<Integer, Float>[]   weightClusterWordMaps;
-    HashSet<Integer>            words;
+    HashSet<Integer>            remainingWords;
 
     ArrayList<Document>         centers;
 
     public DocumentsProcessing() {
         documents = new ArrayList<>();
         documentsContainingWords = new int[Document.nbWords];
-        words = new HashSet<>();
+        remainingWords = new HashSet<>();
     }
 
     public void addDocuments(String words) {
@@ -51,35 +51,42 @@ public class DocumentsProcessing {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+
+        for (Document d : documents) {
+            remainingWords.addAll(d.getWords());
+        }
     }
 
     public void doWordReduction() {
         for (Document d : documents) {
-            HashMap<Integer,Double> tfidfsForDocument = new HashMap<>();
-            for (Integer word : d.getWords()) {           
-                tfidfsForDocument.put(word, d.getFrequency(word) * Math.log(documents.size() / (1 + documentsContainingWords[word]))); 
+            HashMap<Integer, Float> tfidfsForDocument = new HashMap<>();
+            for (Integer word : d.getWords()) {
+                tfidfsForDocument.put(word, (float) (d.getFrequency(word)
+                        * Math.log(documents.size() / (1 + documentsContainingWords[word]))));
             }
-            tfidfsForDocument.entrySet().stream().sorted(new Comparator<Entry<Integer,Double>>() {
+            tfidfsForDocument.entrySet().stream().sorted(new Comparator<Entry<Integer, Float>>() {
 
                 @Override
-                public int compare(Entry<Integer, Double> o1, Entry<Integer, Double> o2) {
+                public int compare(Entry<Integer, Float> o1, Entry<Integer, Float> o2) {
                     if (o1.getValue() > o2.getValue())
                         return 1;
                     else if (o1.getValue() < o2.getValue())
                         return -1;
                     return 0;
                 }
-                
+
             }).skip(2).forEach(e -> {
-                if (e.getValue() < 40) d.removeWord(e.getKey());
+                if (e.getValue() < 40)
+                    d.removeWord(e.getKey());
             });
         }
 
+        remainingWords.clear();
         for (Document d : documents) {
-            words.addAll(d.getWords());
+            remainingWords.addAll(d.getWords());
         }
 
-        System.out.println("Percentage removed = " + (1.0 - words.size() / (float) Document.nbWords) * 100.0);
+        System.out.println("Percentage removed = " + (1.0 - remainingWords.size() / (float) Document.nbWords) * 100.0);
     }
 
     @SuppressWarnings("unchecked")
@@ -102,6 +109,7 @@ public class DocumentsProcessing {
 
         // Main loop
         double diffCenters = Double.MAX_VALUE;
+        int loopNumber = 0;
         while (diffCenters > epsilon) {
 
             // Calculate matrix
@@ -109,8 +117,8 @@ public class DocumentsProcessing {
             weightClusterWordMaps = new HashMap[K];
             Arrays.fill(weightClusterWordMaps, new HashMap<Integer, Float>());
             for (int k = 0; k < K; ++k) {
-                for (int word : words) {
-                    weightClusterWordMaps[k].put(word, (float) (C / words.size()));
+                for (int word : remainingWords) {
+                    weightClusterWordMaps[k].put(word, C / (float)remainingWords.size());
                 }
             }
 
@@ -145,13 +153,31 @@ public class DocumentsProcessing {
             // New weights
             for (int k = 0; k < K; ++k) {
                 double weight = 0;
-                for (int j : words) {
-                    // TODO: Compute variance word j in cluster k
-                    // weightClusterWordMaps[k].put(j,
-                    // weightClusterWordMaps[k].get(j)/(1+()));
+                // Get all the documents contained in cluster k
+                ArrayList<Document> documentsOfCluster = new ArrayList<Document>();
+                for (int i = 0; i < documents.size(); ++i) {
+                    if (membershipMatrix[i][k] == 1) {
+                        documentsOfCluster.add(documents.get(i));
+                    }
+                }
+                // Variances calcul
+                HashMap<Integer, Float> variances = new HashMap<>();
+                for (Document d : documentsOfCluster) {
+                    for (int word : d.getWords())
+                        variances.put(word, (float) ((variances.containsKey(word) ? variances.get(word) : 0)
+                                + Math.pow(d.getFrequency(word) - newcenters.get(k).getFrequency(word), 2)));
+                }
+                for (int key : variances.keySet()) {
+                    variances.put(key, (float) Math.sqrt(variances.get(key)));
+                }
+                float varianceOfMissing = variances.values().stream().max(Float::compare).orElse(0.0f) + 100;
+                // Update of weights
+                for (int j : remainingWords) {
+                    weightClusterWordMaps[k].put(j, weightClusterWordMaps[k].get(j)
+                            / (1 + (variances.containsKey(j) ? variances.get(j) : varianceOfMissing)));
                     weight += Math.pow(weightClusterWordMaps[k].get(j), 2);
                 }
-                for (int j : words) {
+                for (int j : remainingWords) {
                     weightClusterWordMaps[k].put(j,
                             (float) (C * weightClusterWordMaps[k].get(j) / (Math.sqrt(weight))));
                 }
@@ -164,6 +190,8 @@ public class DocumentsProcessing {
             }
 
             centers = new ArrayList<>(newcenters);
+            loopNumber++;
+            System.out.println("Loop " + loopNumber + ", diff = " + diffCenters);
 
         }
 
@@ -181,6 +209,7 @@ public class DocumentsProcessing {
 
     public void resetDocuments() {
         documents.clear();
+        remainingWords.clear();
         Arrays.fill(documentsContainingWords, 0);
     }
 
